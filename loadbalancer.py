@@ -1,14 +1,21 @@
 import os
 import time
-from flask import Flask
+from flask import Flask, request, jsonify
 import json
+import requests
 
 app = Flask(__name__)
 
 class metadata:
     DEFAULT_PORT = 8080
-    public_ip = {"server-0": "128.95.190.67", "server-1": "128.95.190.68",
+    public_ip = {"server-0": "10.10.2.2", "server-1": "128.95.190.68",
                  "server-2": "128.95.190.69", "router": "128.95.190.66", "client": "128.95.190.64"}
+
+@app.route("/send_image", methods=["POST"])
+def send_image():
+    image = request.form["image"]
+    image.save("image.jpg")
+    return "200"
 
 class Server:
     def __init__(self, name, ip, port):

@@ -7,10 +7,17 @@ model = ViTForImageClassification.from_pretrained('google/vit-base-patch16-224')
 
 app = Flask(__name__)
 
+class Metadata:
+    busy = False
+
+    @app.route("/isBusy", methods=['GET'])
+    def isBusy():
+        return str(Metadata.busy)
 
 @app.route("/", methods=['POST'])
 def imagenet():
     if request.method == "POST":
+        Metadata.busy = True
         image = Image.open(request.form['myImage'])
         inputs = feature_extractor(images=image, return_tensors="pt")
         outputs = model(**inputs)
@@ -22,6 +29,12 @@ def imagenet():
         return prediction
     print("Server Listening")
 
+@app.route("/test", methods=['GET'])
+def test():
+    if Metadata.isBusy:
+        return "503"
+    else:
+        return "200"
 
 if __name__ == '__main__':
     app.run()

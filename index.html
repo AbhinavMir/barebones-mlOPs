@@ -6,22 +6,25 @@
 <body>
 	<h1>Image Upload</h1>
 	<form>
-		<input type="file" id="myImage" />
+		<input type="file" id="image" />
 		<button type="submit" onclick="uploadImage()">Upload</button>
 	</form>
 	<p id="message"></p>
 
 	<script>
 		function uploadImage() {
-			var file = document.getElementById('myImage').files[0];
+			var file = document.getElementById('image').files[0];
 			var formData = new FormData();
-			formData.append('myImage', file);
+			formData.append('image', file);
 
 			var xhr = new XMLHttpRequest();
-			xhr.open('POST', 'https://example.com/upload-image', true);
+			xhr.open('POST', 'http://127.0.0.1:8080/send_image', true);
+			console.log('IMAGE HAS BEEN SENT')
 
 			xhr.onload = function() {
+				console.log('IMAGE HAS BEEN UPLOADED')
 				if (this.status === 200) {
+					console.log('IMAGE HAS BEEN UPLOADED')
 					document.getElementById('message').innerHTML = 'IMAGE HAS BEEN UPLOADED';
 				}
 			};
