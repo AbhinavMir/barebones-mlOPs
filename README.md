@@ -49,3 +49,16 @@ lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
         TX packets 0  bytes 0 (0.0 B)
         TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
 ```
+
+To launch Imagenet Server
+Connect to server 0 on which Anaconda and the needed python packages along with app.py are located
+
+launch Anaconda
+```
+source ~/anaconda3/bin/activate
+```
+
+Then launch Flask Server
+```
+python -m flask run --host=0.0.0.0
+```
