@@ -18,7 +18,7 @@
 			formData.append('myImage', file);
 
 			var xhr = new XMLHttpRequest();
-			xhr.open('POST', 'http://128.95.190.66:5000/upload', true);
+			xhr.open('POST', 'http://127.0.0.1:5001/upload', true);
 
 			xhr.onload = function() {
 				if (this.status === 200) {
