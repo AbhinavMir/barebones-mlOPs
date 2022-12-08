@@ -132,8 +132,8 @@ class HelperFunctions:
 
 if __name__ == '__main__':
     try:
-        #app.run(host="0.0.0.0", port=metadata.DEFAULT_PORT, debug=True)
-        print(test_this_server(LoadBalancer.systems[2]))
-        print(send_image("static/dog183782.jpeg", LoadBalancer.systems[0]))
+        app.run(host="0.0.0.0", port=metadata.DEFAULT_PORT, debug=True)
+        # print(test_this_server(LoadBalancer.systems[2]))
+        # print(send_image("static/dog183782.jpeg", LoadBalancer.systems[0]))
     except:
         app.run(host="0.0.0.0", port=metadata.DEFAULT_PORT+1, debug=True)
