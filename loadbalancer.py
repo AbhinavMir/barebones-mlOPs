@@ -43,8 +43,15 @@ class LoadBalancer:
 
 class HelperFunctions:
     def ping(ip, port):
-        hostname = ip+":"+port
+        hostname = ip+":"+str(port)
         response = os.system("ping -c 1 " + hostname)
         return response
+
+    def test_all_servers():
+        for server in LoadBalancer.servers:
+            if HelperFunctions.ping(server.ip, metadata.DEFAULT_PORT) == 0:
+                server.active = True
+            else:
+                server.active = False
         
-HelperFunctions.ping("128.95.190.64", "8080")
+HelperFunctions.ping(metadata.public_ip["server-0"], metadata.DEFAULT_PORT)
