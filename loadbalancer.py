@@ -1,21 +1,29 @@
 import os
 import time
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 import json
+from PIL import Image
 import requests
 
 app = Flask(__name__)
 
 class metadata:
+    queueCoutner = 0
     DEFAULT_PORT = 8080
     public_ip = {"server-0": "10.10.2.2", "server-1": "128.95.190.68",
                  "server-2": "128.95.190.69", "router": "128.95.190.66", "client": "128.95.190.64"}
 
-@app.route("/send_image", methods=["POST"])
-def send_image():
-    image = request.form["image"]
-    image.save("image.jpg")
-    return "200"
+@app.route("/upload", methods=["GET", "POST"])
+@app.route("/", methods=['POST'])
+def upload():
+    if request.method == "POST":
+        image = request.files["myImage"]
+        im = Image.open(image)
+        ext = os.path.splitext(image.filename)[1]
+        im.save("static/" + str(metadata.queueCoutner) + ext)
+        metadata.queueCoutner += 1
+    else :
+        return "Use POST, not GET"
 
 class Server:
     def __init__(self, name, ip, port):

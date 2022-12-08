@@ -1,0 +1,14 @@
+<!-- upload_image.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Image</title>
+</head>
+<body>
+    <form method="POST" enctype="multipart/form-data">
+        <input type="file" name="image" accept="image/*">
+        <input type="submit" value="Upload">
+    </form>
+    <img src="{{ url_for('static', filename='image.jpg') }}" alt="Uploaded image">
+</body>
+</html>
