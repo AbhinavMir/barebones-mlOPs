@@ -39,12 +39,15 @@ class Server:
 class LoadBalancer:
     MAX_SERVERS = 3
     CURRENT_SERVERS = 2
-    servers = []
+    systems = [Server("server-0", metadata.public_ip["server-0"], metadata.DEFAULT_PORT), Server("server-1", metadata.public_ip["server-1"], metadata.DEFAULT_PORT), Server("server-2", metadata.public_ip["server-2"], metadata.DEFAULT_PORT), Server("router", metadata.public_ip["router"], metadata.DEFAULT_PORT), Server("client", metadata.public_ip["client"], metadata.DEFAULT_PORT)]
+
+    def get_servers():
+        return LoadBalancer.systems[:LoadBalancer.CURRENT_SERVERS]
 
 class HelperFunctions:
     def ping(ip, port):
         hostname = ip+":"+str(port)
-        response = os.system("ping -c 1 " + hostname)
+        response = os.system("curl " + hostname)
         return response
 
     def test_all_servers():
@@ -54,4 +57,5 @@ class HelperFunctions:
             else:
                 server.active = False
         
-HelperFunctions.ping(metadata.public_ip["server-0"], metadata.DEFAULT_PORT)
+print(HelperFunctions.ping(metadata.public_ip["client"], metadata.DEFAULT_PORT))
+print(LoadBalancer.get_servers())
