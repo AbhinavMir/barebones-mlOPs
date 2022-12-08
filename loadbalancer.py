@@ -10,8 +10,17 @@ app = Flask(__name__)
 class metadata:
     queueCoutner = 0
     DEFAULT_PORT = 8080
-    public_ip = {"server-0": "10.10.2.2", "server-1": "128.95.190.68",
+    public_ip = {"server-0": "128.95.190.67", "server-1": "128.95.190.68",
                  "server-2": "128.95.190.69", "router": "128.95.190.66", "client": "128.95.190.64"}
+
+def send_image(image, server):
+    files = {'myImage': image}
+    response = requests.post("http://" + server.ip + ":" + str(server.port), files=files)
+    return response
+
+@app.route("/track")
+def get_IP():
+     return jsonify({'ip': request.remote_addr}), 200
 
 @app.route("/upload", methods=["GET", "POST"])
 @app.route("/", methods=['POST'])
@@ -31,7 +40,6 @@ class Server:
         self.ip = ip
         self.port = port
         self.active = False
-        self.connections = 0
 
     def isActive(self):
         return self.active
@@ -41,28 +49,6 @@ class Server:
 
     def __repr__(self):
         return f"{self.name} ({self.ip})"
-
-    def ping(self):
-        print(f"Pinging {self.name} ({self.ip})...")
-        if self.active == False:
-            print(f"{self.name} is down.")
-        else:
-            print(f"{self.name} is up.")
-
-    def connect(self):
-        if self.active == False:
-            print(f"Cannot connect to {self.name} ({self.ip}).")
-        else:
-            print(f"Connecting to {self.name} ({self.ip})...")
-            self.connections += 1
-
-    def disconnect(self):
-        if self.active == False:
-            print(f"Cannot disconnect from {self.name} ({self.ip}).")
-        else:
-            print(f"Disconnecting from {self.name} ({self.ip})...")
-            self.connections -= 1
-
 
 class LoadBalancer:
     MAX_SERVERS = 3
@@ -76,23 +62,22 @@ class LoadBalancer:
     def get_systems():
         return HelperFunctions.turn_to_jsonack(str(LoadBalancer.systems))
 
-    @app.route('/ping')
-    def get_system_status():
-        print("Testing...")
-        HelperFunctions.test_all_servers()
-        to_return = []
-        for system in LoadBalancer.systems:
-            to_return.append(system.ping())
-        return HelperFunctions.turn_to_jsonack(to_return)
-
-    @app.route('/activity')
-    def get_system_activity():
-        to_return = {}
-        for system in LoadBalancer.systems:
-            to_return[system.name] = system.connections
-        return HelperFunctions.turn_to_jsonack(str(to_return))
-
 class HelperFunctions:
+
+    servers = LoadBalancer.systems
+
+    @app.route('/busyChecker')
+    def get_busy_status():
+        busy = []
+        not_busy = []
+        for i in range(LoadBalancer.CURRENT_SERVERS):
+            # ping server/busy
+            response = requests.get("http://" + LoadBalancer.systems[i].ip + ":" + str(LoadBalancer.systems[i].port) + "/isBusy")
+            if(response.json()["busy"]):
+                busy.append(LoadBalancer.systems[i])
+            else:
+                not_busy.append(LoadBalancer.systems[i])
+        return "busy: " + str(busy) + "\nNot busy:  " + str(not_busy)
 
     def get_queue():
         queue = {}
