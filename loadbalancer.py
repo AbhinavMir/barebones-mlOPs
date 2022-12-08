@@ -4,6 +4,7 @@ from flask import Flask, request, jsonify, render_template
 import json
 from PIL import Image
 import requests
+import random
 
 app = Flask(__name__)
 
@@ -35,7 +36,9 @@ def upload():
         image = request.files["myImage"]
         im = Image.open(image)
         # ext = os.path.splitext(image.filename)[1]
-        im.save("static/" + image.filename)
+        # create a random number
+        fn = random.randint(0, 100000)
+        im.save("static/" + image.filename+fn)
         metadata.queueCoutner += 1
     else :
         return "Please use POST, not GET"
