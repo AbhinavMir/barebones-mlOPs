@@ -16,6 +16,8 @@ class metadata:
     public_ip = {"server-0": "128.95.190.67", "server-1": "128.95.190.68",
                  "server-2": "128.95.190.69", "router": "128.95.190.66", "client": "128.95.190.64"}
 
+    # private_ip = {"server-0": "10.10.2.2", "server-1": "
+
 def send_image(image, server):
     files = {'myImage': image}
     response = requests.post("http://" + server.ip + ":" + str(server.port), files=files)
@@ -29,11 +31,11 @@ def upload():
         metadata.queue[metadata.ququeCounter] = request
         image = request.files["myImage"]
         im = Image.open(image)
-        ext = os.path.splitext(image.filename)[1]
-        im.save("static/" + str(metadata.queueCoutner) + ext)
+        # ext = os.path.splitext(image.filename)[1]
+        im.save("static/" + image.filename)
         metadata.queueCoutner += 1
     else :
-        return "Use POST, not GET"
+        return "Please use POST, not GET"
 
 
 @app.route("/queue")
