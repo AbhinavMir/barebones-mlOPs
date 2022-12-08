@@ -7,12 +7,14 @@ model = ViTForImageClassification.from_pretrained('google/vit-base-patch16-224')
 
 app = Flask(__name__)
 
+
 class Metadata:
     busy = False
 
     @app.route("/isBusy", methods=['GET'])
-    def isBusy():
+    def isBusy(cls):
         return str(Metadata.busy)
+
 
 @app.route("/", methods=['POST'])
 def imagenet():
@@ -26,8 +28,10 @@ def imagenet():
         # predicts one of the 1000 ImageNet classes
         predicted_class_idx = logits.argmax(-1).item()
         prediction = model.config.id2label[predicted_class_idx]
+        Metadata.busy = False
         return prediction
     print("Server Listening")
+
 
 @app.route("/test", methods=['GET'])
 def test():
@@ -35,6 +39,7 @@ def test():
         return "503"
     else:
         return "200"
+
 
 if __name__ == '__main__':
     app.run()
