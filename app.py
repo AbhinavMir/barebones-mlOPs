@@ -16,7 +16,7 @@ class Metadata:
         return str(Metadata.busy)
 
 
-@app.route("/", methods=['POST'])
+@app.route("/recog", methods=['POST'])
 def imagenet():
     if request.method == "POST":
         Metadata.busy = True

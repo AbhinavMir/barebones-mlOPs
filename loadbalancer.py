@@ -28,6 +28,10 @@ def send_image(image, server):
     response = requests.post("http://" + server.ip + ":" + str(server.port), files=files)
     return response
 
+def test_this_server(server):
+    response = requests.get("http://" + server.ip + ":" + str(server.port) + "/test")
+    return response.text
+
 @app.route("/upload", methods=["GET", "POST"])
 @app.route("/", methods=['POST'])
 def upload():
@@ -128,6 +132,8 @@ class HelperFunctions:
 
 if __name__ == '__main__':
     try:
-        app.run(host="0.0.0.0", port=metadata.DEFAULT_PORT, debug=True)
+        #app.run(host="0.0.0.0", port=metadata.DEFAULT_PORT, debug=True)
+        print(test_this_server(LoadBalancer.systems[2]))
+        print(send_image("static/dog183782.jpeg", LoadBalancer.systems[0]))
     except:
         app.run(host="0.0.0.0", port=metadata.DEFAULT_PORT+1, debug=True)
