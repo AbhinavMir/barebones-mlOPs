@@ -9,8 +9,10 @@ app = Flask(__name__)
 
 class metadata:
     queueCoutner = 0
+    queueActive = 0
     queue = {}
-    DEFAULT_PORT = 8080
+    # Queue of images to be processed, maps IP to image and has a counter which acts as ID
+    DEFAULT_PORT = 5000
     public_ip = {"server-0": "128.95.190.67", "server-1": "128.95.190.68",
                  "server-2": "128.95.190.69", "router": "128.95.190.66", "client": "128.95.190.64"}
 
@@ -24,6 +26,7 @@ def send_image(image, server):
 @app.route("/", methods=['POST'])
 def upload():
     if request.method == "POST":
+        metadata.queue[metadata.ququeCounter] = request
         image = request.files["myImage"]
         im = Image.open(image)
         ext = os.path.splitext(image.filename)[1]
@@ -31,6 +34,11 @@ def upload():
         metadata.queueCoutner += 1
     else :
         return "Use POST, not GET"
+
+
+@app.route("/queue")
+def get_queue():
+    return 
 
 class Server:
     def __init__(self, name, ip, port):
@@ -87,11 +95,6 @@ class HelperFunctions:
                 not_busy.append(LoadBalancer.systems[i])
         return "Busy: " + str(busy) + "\nNot busy:  " + str(not_busy) + "\nInactive: " + str(inactive)
 
-    def get_queue():
-        queue = {}
-        for server in LoadBalancer.systems:
-            queue[server.name] = server.connections
-
     def turn_to_jsonack(data):
         json_response = {"success": True, "data": data}
         return json_response
@@ -117,4 +120,7 @@ class HelperFunctions:
         return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=8080, debug=True)
+    try:
+        app.run(host="0.0.0.0", port=metadata.DEFAULT_PORT, debug=True)
+    except:
+        app.run(host="0.0.0.0", port=metadata.DEFAULT_PORT+1, debug=True)
