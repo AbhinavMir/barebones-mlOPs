@@ -94,7 +94,7 @@ class HelperFunctions:
         else:
             server.active = False
 
-    @app.route('/test')
+    @app.route('/')
     def hello_world():
         return "Hello World!"
 
