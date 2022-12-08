@@ -28,7 +28,7 @@ def send_image(image, server):
 @app.route("/", methods=['POST'])
 def upload():
     if request.method == "POST":
-        metadata.queue[metadata.ququeCounter] = request
+        metadata.queue[metadata.queueCoutner] = request
         image = request.files["myImage"]
         im = Image.open(image)
         # ext = os.path.splitext(image.filename)[1]
