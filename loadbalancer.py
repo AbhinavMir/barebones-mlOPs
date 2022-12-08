@@ -96,7 +96,7 @@ class HelperFunctions:
 
     @app.route('/')
     def hello_world():
-        return "Hello World!"
+        return "200 OK"
 
 
 if __name__ == '__main__':
