@@ -40,7 +40,7 @@ def upload():
 
 @app.route("/queue")
 def get_queue():
-    return 
+    return metadata.queue
 
 class Server:
     def __init__(self, name, ip, port):
