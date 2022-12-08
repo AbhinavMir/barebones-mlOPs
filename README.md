@@ -3,7 +3,7 @@ If you're storing your private key in ~/.ssh, it makes sense to `chmod 400 ~/.ss
 To connect to server-0 machine:
 
 ```
-ssh -i ~/.ssh/id_geni_ssh_rsa sabhinav@pcvm1-18.instageni.washington.edu -p 22
+ssh -i ~/.ssh/id_geni_ssh_rsa fjensen@pcvm1-18.instageni.washington.edu -p 22
 ```
 
 To connect to client machine:
