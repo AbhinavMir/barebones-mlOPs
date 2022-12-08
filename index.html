@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Image Upload</title>
+</head>
+<body>
+	<h1>Image Upload</h1>
+	<form>
+		<input type="file" id="myImage" />
+		<button type="submit" onclick="uploadImage()">Upload</button>
+	</form>
+	<p id="message"></p>
+
+	<script>
+		function uploadImage() {
+			var file = document.getElementById('myImage').files[0];
+			var formData = new FormData();
+			formData.append('myImage', file);
+
+			var xhr = new XMLHttpRequest();
+			xhr.open('POST', 'https://example.com/upload-image', true);
+
+			xhr.onload = function() {
+				if (this.status === 200) {
+					document.getElementById('message').innerHTML = 'IMAGE HAS BEEN UPLOADED';
+				}
+			};
+
+			xhr.send(formData);
+		}
+	</script>
+</body>
+</html>
