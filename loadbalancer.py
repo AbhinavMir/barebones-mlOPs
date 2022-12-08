@@ -1,6 +1,7 @@
 import os
 import time
 from flask import Flask
+import json 
 
 app = Flask(__name__)
 
@@ -96,7 +97,7 @@ class HelperFunctions:
 
     @app.route('/')
     def hello_world():
-        return "200 OK"
+        return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
 
 if __name__ == '__main__':
