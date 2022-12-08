@@ -77,7 +77,7 @@ class HelperFunctions:
 
     def ping(ip, port):
         hostname = ip+":"+str(port)
-        response = os.system("curl " + hostname)
+        response = os.system("ping " + hostname)
         return response
 
     # test all servers and update loadbalancers
