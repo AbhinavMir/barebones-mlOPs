@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Images</title>
+</head>
+<body>
+    <h1>Images</h1>
+    <ul>
+        {% for image in images %}
+            <li><img src="static/" alt="{{ image }}" /></li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

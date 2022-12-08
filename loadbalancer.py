@@ -16,13 +16,16 @@ class metadata:
     public_ip = {"server-0": "128.95.190.67", "server-1": "128.95.190.68",
                  "server-2": "128.95.190.69", "router": "128.95.190.66", "client": "128.95.190.64"}
 
-    # private_ip = {"server-0": "10.10.2.2", "server-1": "
+# show all images in the static folder 
+@app.route('/images')
+def images():
+    # return names of all images in the static folder without using render_template
+    return jsonify(os.listdir('static'))
 
 def send_image(image, server):
     files = {'myImage': image}
     response = requests.post("http://" + server.ip + ":" + str(server.port), files=files)
     return response
-
 
 @app.route("/upload", methods=["GET", "POST"])
 @app.route("/", methods=['POST'])
@@ -36,7 +39,6 @@ def upload():
         metadata.queueCoutner += 1
     else :
         return "Please use POST, not GET"
-
 
 @app.route("/queue")
 def get_queue():
