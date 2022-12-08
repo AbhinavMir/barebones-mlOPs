@@ -25,7 +25,7 @@ def images():
 
 def send_image(image, server):
     files = {'myImage': image}
-    response = requests.post("http://" + server.ip + ":" + str(server.port), files=files)
+    response = requests.post("http://" + server.ip + ":" + str(server.port) + '/imagenet', files=files)
     return response
 
 def test_this_server(server):
