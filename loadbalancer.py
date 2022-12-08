@@ -35,10 +35,10 @@ def upload():
         metadata.queue[metadata.queueCoutner] = str(request.remote_addr)
         image = request.files["myImage"]
         im = Image.open(image)
-        # ext = os.path.splitext(image.filename)[1]
+        ext = os.path.splitext(image.filename)
         # create a random number
         fn = random.randint(0, 100000)
-        im.save("static/" + image.filename+fn)
+        im.save("static/" + ext[0] + str(fn) + ext[1])
         metadata.queueCoutner += 1
     else :
         return "Please use POST, not GET"
