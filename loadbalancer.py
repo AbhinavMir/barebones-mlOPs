@@ -87,7 +87,9 @@ class HelperFunctions:
             else:
                 server.active = False
 
-
+    @app.route('/test')
+    def hello_world():
+        return "Hello World!"
 print(HelperFunctions.ping(
     metadata.public_ip["client"], metadata.DEFAULT_PORT))
 
