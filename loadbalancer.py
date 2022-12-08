@@ -80,20 +80,25 @@ class HelperFunctions:
         response = os.system("curl " + hostname)
         return response
 
+    # test all servers and update loadbalancers
     def test_all_servers():
-        for server in LoadBalancer.servers:
+        for server in LoadBalancer.systems:
             if HelperFunctions.ping(server.ip, metadata.DEFAULT_PORT) == 0:
                 server.active = True
             else:
                 server.active = False
 
+    def test_server(server):
+        if HelperFunctions.ping(server.ip, metadata.DEFAULT_PORT) == 0:
+            server.active = True
+        else:
+            server.active = False
+
     @app.route('/test')
     def hello_world():
         return "Hello World!"
-print(HelperFunctions.ping(
-    metadata.public_ip["client"], metadata.DEFAULT_PORT))
 
-print(LoadBalancer.get_systems())
 
 if __name__ == '__main__':
+    HelperFunctions.test_all_servers()
     app.run(host="0.0.0.0", port = 8080, debug = True)
