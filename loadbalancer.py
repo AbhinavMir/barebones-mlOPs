@@ -10,7 +10,6 @@ class metadata:
     public_ip = {"server-0": "128.95.190.67", "server-1": "128.95.190.68",
                  "server-2": "128.95.190.69", "router": "128.95.190.66", "client": "128.95.190.64"}
 
-
 class Server:
     def __init__(self, name, ip, port):
         self.name = name
@@ -78,11 +77,14 @@ class LoadBalancer:
             to_return[system.name] = system.connections
         return HelperFunctions.turn_to_jsonack(str(to_return))
 
-
 class HelperFunctions:
 
+    def get_queue():
+        queue = {}
+        for server in LoadBalancer.systems:
+            queue[server.name] = server.connections
+
     def turn_to_jsonack(data):
-        # Add  json.dumps({'success':True}), 200, {'ContentType':'application/json'} and data to another field called data
         json_response = {"success": True, "data": data}
         return json_response
 
@@ -105,7 +107,6 @@ class HelperFunctions:
     @app.route('/')
     def hello_world():
         return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
-
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=8080, debug=True)
