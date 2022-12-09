@@ -24,9 +24,10 @@ def images():
     return jsonify(os.listdir('static'))
 
 def send_image(image, server):
-    files = {'myImage': image}
+    Image = open(image, 'rb')
+    files = {'myImage': Image}
     response = requests.post("http://" + server.ip + ":" + str(server.port) + '/imagenet', files=files)
-    return response
+    return response.text
 
 def test_this_server(server):
     response = requests.get("http://" + server.ip + ":" + str(server.port) + "/test")
@@ -84,6 +85,10 @@ class HelperFunctions:
     servers = LoadBalancer.systems
 
 
+    def send_final_to_server():
+        # check if there are free servers
+        HelperFunctions.get_busy_status()
+
     @app.route("/track")
     def get_IP():
         return request.remote_addr
@@ -104,7 +109,24 @@ class HelperFunctions:
                 busy.append(LoadBalancer.systems[i])
             else:
                 not_busy.append(LoadBalancer.systems[i])
-        return "Busy: " + str(busy) + "\nNot busy:  " + str(not_busy) + "\nInactive: " + str(inactive)
+        return str({"busy": busy, "not_busy": not_busy, "inactive": inactive})
+    
+    def get_server_by_function():
+        busy = []
+        not_busy = []
+        inactive = []
+        for i in range(LoadBalancer.CURRENT_SERVERS):
+            # ping server/busy
+            try:
+                response = requests.get("http://" + LoadBalancer.systems[i].ip + ":" + str(LoadBalancer.systems[i].port) + "/isBusy")
+            except:
+                inactive.append(LoadBalancer.systems[i])
+                continue
+            if(response.json()["busy"]):
+                busy.append(LoadBalancer.systems[i])
+            else:
+                not_busy.append(LoadBalancer.systems[i])
+        return {"busy": busy, "not_busy": not_busy, "inactive": inactive}
 
     def turn_to_jsonack(data):
         json_response = {"success": True, "data": data}
@@ -132,8 +154,8 @@ class HelperFunctions:
 
 if __name__ == '__main__':
     try:
-        app.run(host="0.0.0.0", port=metadata.DEFAULT_PORT, debug=True)
-        # print(test_this_server(LoadBalancer.systems[2]))
-        # print(send_image("static/dog183782.jpeg", LoadBalancer.systems[0]))
+        # app.run(host="0.0.0.0", port=metadata.DEFAULT_PORT, debug=True)
+        print(test_this_server(LoadBalancer.systems[0]))
+        print(send_image("static/dog1.jpeg", LoadBalancer.systems[0]))
     except:
         app.run(host="0.0.0.0", port=metadata.DEFAULT_PORT+1, debug=True)
