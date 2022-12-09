@@ -6,14 +6,13 @@ from PIL import Image
 import requests
 import random
 import threading
-
-def add_to_CSV(result_value):
-    with open('results.csv', 'a') as f:
-        f.write(result_value + "\n")
+import sqlite3
 
 app = Flask(__name__)
 
 results_dict = {}
+con = sqlite3.connect('results.db')
+cur = con.cursor()
 
 @app.route("/resultsAll")
 def resultsAll():
@@ -60,9 +59,10 @@ def upload():
         im = Image.open(image)
         ext = os.path.splitext(image.filename)
         # create a random number
-        im.save("static/" + ext[0] + "-(" + str(request.remote_addr) + ")" + ext[1])
+        fn = str(random.randint(0, 1000))
+        im.save("static/" + ext[0] + fn + ext[1])
         metadata.queueCoutner += 1
-        results_dict[request.remote_addr] = "Processing"
+        cur.execute("INSERT INTO results VALUES (?, ?, ?)", (metadata.queueCoutner, str(request.remote_addr), "Processing"))
     else:
         return "Please use POST, not GET"
 
@@ -173,13 +173,9 @@ class HelperFunctions:
         return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
 
     @app.route('/results')
-    def send_recognized_image_response():
-        if(str(results_dict[request.remote_addr])== "None"):
-            return json.dumps({'success': False}), 200, {'ContentType': 'application/json'}
-        elif(str(results_dict[request.remote_addr])== "None"):
-            return json.dumps({'success': False}), 200, {'ContentType': 'application/json'}
-        else:
-            return json.dumps({'success': True, "data": results_dict[request.remote_addr]}), 200, {'ContentType': 'application/json'}
+    def get_results():
+        res = cur.execute("SELECT * FROM results")
+        return res.fetchall()
 
     def run():
         while True:
