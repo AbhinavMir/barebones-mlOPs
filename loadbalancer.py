@@ -89,6 +89,9 @@ def test_this_server(server):
 def main():
     return "200: Connection Init"
 
+def imageSize_to_dimensions(imageSize):
+    return imageSize[0] * imageSize[1]
+
 @app.route("/upload", methods=["GET", "POST"])
 def upload():
     if request.method == "POST":
@@ -99,7 +102,7 @@ def upload():
         # create a random number
         im.save("static/" + ext[0] + "-(" + str(request.remote_addr) +  ")" + ext[1])
         metadata.queueCoutner += 1
-        add_to_CSV(metadata.queueCoutner, str(request.remote_addr), "Processing", get_time(), imageSize=im.size)
+        add_to_CSV(metadata.queueCoutner, str(request.remote_addr), "Processing", get_time(), imageSize=imageSize_to_dimensions(im.size)))
         return "200: Image Uploaded"
     else:
         return "Please use POST, not GET"
@@ -219,14 +222,13 @@ class HelperFunctions:
         get_from_CSV_all()
 
     def run():
-        ## delete all files in static
         files = os.listdir("static")
         for file in files:
             os.remove("static/" + file)
 
         while True:
             files = os.listdir("static")
-            if(len(files) == 0):
+            if(len(files) != 0):
                 continue
             for file in files:
                 for i in range(LoadBalancer.CURRENT_SERVERS):
