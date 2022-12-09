@@ -6,7 +6,6 @@ from PIL import Image
 import requests
 import random
 import threading
-import sqlite3
 import csv
 import datetime
 
@@ -14,14 +13,34 @@ app = Flask(__name__)
 
 results_dict = {}
 
-con = sqlite3.connect('results.db')
-@app.route("/resultsAll")
-def resultsAll():
-    cur = con.cursor()
-    cur.execute("SELECT * FROM results")
-    con.commit()
-    cur.close()
-    return str(cur.fetchall())
+def add_to_CSV(id,ip, result, time1):
+    with open('results.csv', 'a') as f:
+        writer = csv.writer(f)
+        writer.writerow([id, ip, result, time1])
+
+def get_from_CSV(id, ip):
+    with open('results.csv', 'r') as f:
+        reader = csv.reader(f)
+        data = list(reader)
+    for i in range(len(data)):
+        if data[i][0] == id and data[i][1] == ip:
+            return data[i][2], data[i][3], data[i][4]
+
+def modify_csv(id, ip, result, time1, time2):
+    with open('results.csv', 'r') as f:
+        reader = csv.reader(f)
+        data = list(reader)
+    for i in range(len(data)):
+        if data[i][0] == id and data[i][1] == ip:
+            data[i][2] = result
+            data[i][3] = time1
+            data[i][4] = time2
+    with open('results.csv', 'w') as f:
+        writer = csv.writer(f)
+        writer.writerows(data)
+
+def get_time():
+    return str(datetime.datetime.now())
 
 class metadata:
     queueCoutner = 0
@@ -69,10 +88,7 @@ def upload():
         fn = str(random.randint(0, 1000))
         im.save("static/" + ext[0] + fn + ext[1])
         metadata.queueCoutner += 1
-        cur = con.cursor()
-        cur.execute("INSERT INTO results VALUES (?, ?, ?)", (metadata.queueCoutner, str(request.remote_addr), "Processing"))
-        con.commit()
-        cur.close()
+        add_to_CSV(metadata.queueCoutner, str(request.remote_addr), "Processing", get_time())
     else:
         return "Please use POST, not GET"
 
@@ -184,11 +200,7 @@ class HelperFunctions:
     @app.route('/results')
     def get_results():
         userIP = request.remote_addr
-        cur = con.cursor()
-        res = cur.execute("SELECT * FROM results WHERE ip=?", (userIP,))
-        con.commit()
-        cur.close()
-        return res.fetchall()
+        get
 
     def run():
         while True:
@@ -223,8 +235,8 @@ if __name__ == '__main__':
 
     while(True):
         cur = con.cursor()
-        cur.execute("CREATE TABLE IF NOT EXISTS results (ip_address TEXT, result TEXT, timestamp TEXT)")
-        cur.execute("INSERT INTO results VALUES (?,?,?)", ("127.0.0.1", "Processing", str(datetime.datetime.now())))
+        cur.execute("CREATE TABLE IF NOT EXISTS results (ip_address TEXT, result TEXT, timestamp1 TEXT, timestamp2 TEXT)")
+        #cur.execute("INSERT INTO results VALUES (?,?,?,?)", ("127.0.0.1", "Processing", str(datetime.datetime.now())))
         # update to dog for 127.0.0.1
         cur.execute("UPDATE results SET result=? WHERE ip_address = '127.0.0.1'", ("Dog",))
         con.commit()
