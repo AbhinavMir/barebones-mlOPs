@@ -8,6 +8,9 @@ import random
 import threading
 import csv
 import datetime
+import glob
+import time
+import re
 
 app = Flask(__name__)
 
@@ -225,31 +228,41 @@ class HelperFunctions:
 
     def run():
         print("STARTED BACKGROUND")
-        files = os.listdir("static")
-        for file in files:
-            os.remove("static/" + file)
-
-        while True:
-            files = os.listdir("static")
-            for file in files:
-                print("DETECTED FILE")
-                for i in range(LoadBalancer.CURRENT_SERVERS):
-                    if (test_this_server(LoadBalancer.systems[i])=='200'):
-                        print("sending to " + LoadBalancer.systems[i].name)
-                        res = send_image(file, LoadBalancer.systems[i])
-                        print("OUTPUT")
-                        dataName= extract_data(file)
-                        print(res)
-                        print("CHANGING CSV")
-                        change_from_processing_to_result(dataName, res)
-                        print("REMOVING FILE")
-                        os.remove("static/" + file)
-                        break
+        while(True):
+            files = glob.glob('static/*')
+            if(len(files) != 0):
+                for file in files:
+                    print("DETECTED FILE")
+                    for i in range(LoadBalancer.CURRENT_SERVERS):
+                        if (test_this_server(LoadBalancer.systems[i])=='200'):
+                            print("FOUND SERVER")
+                            print(send_image(file, LoadBalancer.systems[i]))
+                            os.remove(file)
+                            files.remove(file)
+                            data_ip =extract_data(file)
+                            print(data_ip[0])
+                            change_from_processing_to_result(data_ip,file)
 
 if __name__ == '__main__':
+    # delete all files in static
+    # for i in range(LoadBalancer.CURRENT_SERVERS):
+    #     print(test_this_server(LoadBalancer.systems[i]))
+    # files = glob.glob('static/*')
+    # for f in files:
+    #     os.remove(f)
+    # my_thread = threading.Thread(target=HelperFunctions.run)
+    # my_thread.start()
+    # app.run(host="0.0.0.0", port=metadata.DEFAULT_PORT+34, debug=True)
 
-    for i in range(LoadBalancer.CURRENT_SERVERS):
-        print(test_this_server(LoadBalancer.systems[i]))
-    my_thread = threading.Thread(target=HelperFunctions.run)
-    my_thread.start()
-    app.run(host="0.0.0.0", port=metadata.DEFAULT_PORT+34, debug=True)
+    hmm = {}
+    for file in glob.glob('static/*'):
+        ts1 = time.time()
+        send_image(file, LoadBalancer.systems[0])
+        ts2 = time.time()
+        size = os.path.getsize(file)
+        hmm[size] = ts2-ts1
+        # add to txt
+        with open('results.txt', 'a') as f:
+            f.write(str(size) + ", " + str(ts2-ts1) + '\n')
+
+
