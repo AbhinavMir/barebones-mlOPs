@@ -7,6 +7,10 @@ import requests
 import random
 import threading
 
+def add_to_CSV(result_value):
+    with open('results.csv', 'a') as f:
+        f.write(result_value + "\n")
+
 app = Flask(__name__)
 
 results_dict = {}
