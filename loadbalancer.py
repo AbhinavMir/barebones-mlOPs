@@ -13,18 +13,25 @@ app = Flask(__name__)
 
 results_dict = {}
 
-def add_to_CSV(id,ip, result, time1):
+def add_to_CSV(id,ip, result, time1, imageSize):
     with open('results.csv', 'a') as f:
         writer = csv.writer(f)
-        writer.writerow([id, ip, result, time1])
+        writer.writerow([id, ip, result, time1, imageSize])
 
-def get_from_CSV(id, ip):
+def get_from_CSV(ip):
     with open('results.csv', 'r') as f:
         reader = csv.reader(f)
         data = list(reader)
     for i in range(len(data)):
-        if data[i][0] == id and data[i][1] == ip:
-            return data[i][2], data[i][3], data[i][4]
+        if data[i][1] == ip:
+            return data[i]
+    return None
+
+def get_from_CSV_all():
+    with open('results.csv', 'r') as f:
+        reader = csv.reader(f)
+        data = list(reader)
+    return data
 
 def modify_csv(id, ip, result, time1, time2):
     with open('results.csv', 'r') as f:
@@ -41,6 +48,11 @@ def modify_csv(id, ip, result, time1, time2):
 
 def get_time():
     return str(datetime.datetime.now())
+
+def extract_data(input_string):
+  pattern = r"\((.*?)\)"
+  matches = re.findall(pattern, input_string)
+  return matches
 
 class metadata:
     queueCoutner = 0
@@ -85,10 +97,10 @@ def upload():
         im = Image.open(image)
         ext = os.path.splitext(image.filename)
         # create a random number
-        fn = str(random.randint(0, 1000))
-        im.save("static/" + ext[0] + fn + ext[1])
+        im.save("static/" + ext[0] + "-(" + str(request.remote_addr) +  ")" + ext[1])
         metadata.queueCoutner += 1
-        add_to_CSV(metadata.queueCoutner, str(request.remote_addr), "Processing", get_time())
+        add_to_CSV(metadata.queueCoutner, str(request.remote_addr), "Processing", get_time(), imageSize=im.size)
+        return "200: Image Uploaded"
     else:
         return "Please use POST, not GET"
 
@@ -200,46 +212,40 @@ class HelperFunctions:
     @app.route('/results')
     def get_results():
         userIP = request.remote_addr
-        get
+        get_from_CSV(userIP)
+    
+    @app.route('/resultsAll')
+    def get_results_all():
+        get_from_CSV_all()
 
     def run():
+        ## delete all files in static
+        files = os.listdir("static")
+        for file in files:
+            os.remove("static/" + file)
+
         while True:
-            # check for files in static
-            files = [] 
             files = os.listdir("static")
+            if(len(files) == 0):
+                continue
             for file in files:
-                cur = con.cursor()
-                if test_this_server(LoadBalancer.systems[0]) == "200":
-                    rec = send_image("static/" + file, LoadBalancer.systems[0])
-                    cur.execute("UPDATE results SET result=? WHERE ip_address = '127.0.0.1'", (str(rec),))
-                    print("RECOGNIZED:" + rec)
-                    os.remove  ("static/" + file)
-                elif test_this_server(LoadBalancer.systems[1]) == "200":
-                    rec = send_image("static/" + file, LoadBalancer.systems[1])
-                    cur.execute("UPDATE results SET result=? WHERE ip_address = '127.0.0.1'", (str(rec),))
-                    print("RECOGNIZED:" + rec)
-                    results_dict[queueID] = rec
-                    os.remove  ("static/"+ file)
-                elif test_this_server(LoadBalancer.systems[2]) == "200":
-                    rec = send_image("static/" + file, LoadBalancer.systems[2])
-                    cur.execute("UPDATE results SET result=? WHERE ip_address = '127.0.0.1'", (str(rec),))
-                    print("RECOGNIZED:" + rec)
-                    os.remove  ("static/"+ file)
-                else:
-                    print("No servers active")
-                con.commit()
-                cur.close()
+                for i in range(LoadBalancer.CURRENT_SERVERS):
+                    if (test_this_server(LoadBalancer.systems[i])):
+                        try:
+                            res = send_image(file, LoadBalancer.systems[i])
+                            dataName= extract_data(file)
+                            print(res)
+                            modify_csv(ip=dataName, result=res, time2=get_time())
+                            os.remove("static/" + file)
+                            break
+                        except:
+                            print("error")
+                            continue
 
 
 if __name__ == '__main__':
 
     while(True):
-        cur = con.cursor()
-        cur.execute("CREATE TABLE IF NOT EXISTS results (ip_address TEXT, result TEXT, timestamp1 TEXT, timestamp2 TEXT)")
-        #cur.execute("INSERT INTO results VALUES (?,?,?,?)", ("127.0.0.1", "Processing", str(datetime.datetime.now())))
-        # update to dog for 127.0.0.1
-        cur.execute("UPDATE results SET result=? WHERE ip_address = '127.0.0.1'", ("Dog",))
-        con.commit()
         my_thread = threading.Thread(target=HelperFunctions.run)
         my_thread.start()
-        app.run(host="0.0.0.0", port=metadata.DEFAULT_PORT+34, debug=True)
+        app.run(host="0.0.0.0", port=metadata.DEFAULT_PORT+34, debug=False)
