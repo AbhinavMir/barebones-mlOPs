@@ -7,16 +7,21 @@ import requests
 import random
 import threading
 import sqlite3
+import csv
+import datetime
 
 app = Flask(__name__)
 
 results_dict = {}
-con = sqlite3.connect('results.db')
-cur = con.cursor()
 
+con = sqlite3.connect('results.db')
 @app.route("/resultsAll")
 def resultsAll():
-    return results_dict
+    cur = con.cursor()
+    cur.execute("SELECT * FROM results")
+    con.commit()
+    cur.close()
+    return str(cur.fetchall())
 
 class metadata:
     queueCoutner = 0
@@ -49,9 +54,11 @@ def test_this_server(server):
                             ":" + str(server.port) + "/test")
     return response.text
 
+@app.route("/")
+def main():
+    return "200: Connection Init"
 
 @app.route("/upload", methods=["GET", "POST"])
-@app.route("/", methods=['POST'])
 def upload():
     if request.method == "POST":
         metadata.queue[metadata.queueCoutner] = str(request.remote_addr)
@@ -62,14 +69,16 @@ def upload():
         fn = str(random.randint(0, 1000))
         im.save("static/" + ext[0] + fn + ext[1])
         metadata.queueCoutner += 1
+        cur = con.cursor()
         cur.execute("INSERT INTO results VALUES (?, ?, ?)", (metadata.queueCoutner, str(request.remote_addr), "Processing"))
+        con.commit()
+        cur.close()
     else:
         return "Please use POST, not GET"
 
 @app.route("/queue")
 def get_queue():
-    return metadata.queue
-
+    return str(metadata.queue)
 
 class Server:
     def __init__(self, name, ip, port):
@@ -174,7 +183,11 @@ class HelperFunctions:
 
     @app.route('/results')
     def get_results():
-        res = cur.execute("SELECT * FROM results")
+        userIP = request.remote_addr
+        cur = con.cursor()
+        res = cur.execute("SELECT * FROM results WHERE ip=?", (userIP,))
+        con.commit()
+        cur.close()
         return res.fetchall()
 
     def run():
@@ -183,47 +196,38 @@ class HelperFunctions:
             files = [] 
             files = os.listdir("static")
             for file in files:
-                # check if LoadBalancer.systems[0] is active
-                # HelperFunctions.send_image("static/" + file, LoadBalancer.systems[0])
-                # os.remove  ("static/" + file)
+                cur = con.cursor()
                 if test_this_server(LoadBalancer.systems[0]) == "200":
                     rec = send_image("static/" + file, LoadBalancer.systems[0])
-                    # print(rec)
-                    # figure out the queueID between -()
-                    queueID = file.split("-")[1].split(".")[0]
-                    results_dict[queueID] = rec
+                    cur.execute("UPDATE results SET result=? WHERE ip_address = '127.0.0.1'", (str(rec),))
                     print("RECOGNIZED:" + rec)
                     os.remove  ("static/" + file)
                 elif test_this_server(LoadBalancer.systems[1]) == "200":
                     rec = send_image("static/" + file, LoadBalancer.systems[1])
-                    # print(rec)
-                    # figure out the queueID between -()
-                    queueID = file.split("-")[1].split(".")[0]
+                    cur.execute("UPDATE results SET result=? WHERE ip_address = '127.0.0.1'", (str(rec),))
                     print("RECOGNIZED:" + rec)
                     results_dict[queueID] = rec
                     os.remove  ("static/"+ file)
                 elif test_this_server(LoadBalancer.systems[2]) == "200":
                     rec = send_image("static/" + file, LoadBalancer.systems[2])
-                    queueID = file.split("-")[1].split(".")[0]
-                    results_dict[queueID] = rec
+                    cur.execute("UPDATE results SET result=? WHERE ip_address = '127.0.0.1'", (str(rec),))
                     print("RECOGNIZED:" + rec)
                     os.remove  ("static/"+ file)
                 else:
                     print("No servers active")
+                con.commit()
+                cur.close()
 
 
 if __name__ == '__main__':
 
     while(True):
-        try:
-            my_thread = threading.Thread(target=HelperFunctions.run)
-            my_thread.start()
-            app.run(host="0.0.0.0", port=metadata.DEFAULT_PORT+1, debug=True)
-        # print(test_this_server(LoadBalancer.systems[0]))
-        # print(test_this_server(LoadBalancer.systems[1]))
-        # print(test_this_server(LoadBalancer.systems[2]))
-
-        # print(send_image("static/dog1.jpeg", LoadBalancer.systems[0]))
-        except:
-            app.run(host="0.0.0.0", port=metadata.DEFAULT_PORT+1, debug=True)
-        # print("Error")
+        cur = con.cursor()
+        cur.execute("CREATE TABLE IF NOT EXISTS results (ip_address TEXT, result TEXT, timestamp TEXT)")
+        cur.execute("INSERT INTO results VALUES (?,?,?)", ("127.0.0.1", "Processing", str(datetime.datetime.now())))
+        # update to dog for 127.0.0.1
+        cur.execute("UPDATE results SET result=? WHERE ip_address = '127.0.0.1'", ("Dog",))
+        con.commit()
+        my_thread = threading.Thread(target=HelperFunctions.run)
+        my_thread.start()
+        app.run(host="0.0.0.0", port=metadata.DEFAULT_PORT+34, debug=True)
