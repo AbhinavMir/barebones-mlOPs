@@ -12,14 +12,20 @@ import datetime
 app = Flask(__name__)
 
 results_dict = {}
+results2_dict = {}
 
 def add_to_CSV(id,ip, result, time1, imageSize):
     with open('results.csv', 'a') as f:
         writer = csv.writer(f)
         writer.writerow([id, ip, result, time1, imageSize])
 
+def add_to_CSV_result(id,ip, result, time1, imageSize):
+    with open('results2.csv', 'a') as f:
+        writer = csv.writer(f)
+        writer.writerow([id, ip, result, time1, imageSize])
+
 def get_from_CSV(ip):
-    with open('results.csv', 'r') as f:
+    with open('results2.csv', 'r') as f:
         reader = csv.reader(f)
         data = list(reader)
     for i in range(len(data)):
@@ -102,7 +108,7 @@ def upload():
         # create a random number
         im.save("static/" + ext[0] + "-(" + str(request.remote_addr) +  ")" + ext[1])
         metadata.queueCoutner += 1
-        add_to_CSV(metadata.queueCoutner, str(request.remote_addr), "Processing", get_time(), imageSize=imageSize_to_dimensions(im.size)))
+        add_to_CSV(metadata.queueCoutner, str(request.remote_addr), "Processing", get_time(), imageSize=imageSize_to_dimensions(im.size))
         return "200: Image Uploaded"
     else:
         return "Please use POST, not GET"
@@ -219,7 +225,7 @@ class HelperFunctions:
     
     @app.route('/resultsAll')
     def get_results_all():
-        get_from_CSV_all()
+        return get_from_CSV_all()
 
     def run():
         files = os.listdir("static")
