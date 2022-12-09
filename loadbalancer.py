@@ -25,7 +25,7 @@ def add_to_CSV_result(id,ip, result, time1, imageSize):
         writer.writerow([id, ip, result, time1, imageSize])
 
 def get_from_CSV(ip):
-    with open('results2.csv', 'r') as f:
+    with open('results.csv', 'r') as f:
         reader = csv.reader(f)
         data = list(reader)
     for i in range(len(data)):
@@ -39,15 +39,14 @@ def get_from_CSV_all():
         data = list(reader)
     return data
 
-def modify_csv(id, ip, result, time1, time2):
+def change_from_processing_to_result(ip, result):
     with open('results.csv', 'r') as f:
         reader = csv.reader(f)
         data = list(reader)
     for i in range(len(data)):
-        if data[i][0] == id and data[i][1] == ip:
+        if data[i][1] == ip:
             data[i][2] = result
-            data[i][3] = time1
-            data[i][4] = time2
+            data[i][3] = str(datetime.datetime.now())
     with open('results.csv', 'w') as f:
         writer = csv.writer(f)
         writer.writerows(data)
@@ -133,7 +132,6 @@ class Server:
     def __repr__(self):
         return f"{self.name} ({self.ip})"
 
-
 class LoadBalancer:
     MAX_SERVERS = 3
     CURRENT_SERVERS = 3
@@ -147,7 +145,6 @@ class LoadBalancer:
     @app.route('/status')
     def get_systems():
         return HelperFunctions.turn_to_jsonack(str(LoadBalancer.systems))
-
 
 class HelperFunctions:
 
@@ -163,7 +160,6 @@ class HelperFunctions:
         not_busy = []
         inactive = []
         for i in range(LoadBalancer.CURRENT_SERVERS):
-            # ping server/busy
             try:
                 response = requests.get(
                     "http://" + LoadBalancer.systems[i].ip + ":" + str(LoadBalancer.systems[i].port) + "/isBusy")
@@ -221,39 +217,39 @@ class HelperFunctions:
     @app.route('/results')
     def get_results():
         userIP = request.remote_addr
-        get_from_CSV(userIP)
+        return get_from_CSV(userIP)
     
     @app.route('/resultsAll')
     def get_results_all():
         return get_from_CSV_all()
 
     def run():
+        print("STARTED BACKGROUND")
         files = os.listdir("static")
         for file in files:
             os.remove("static/" + file)
 
         while True:
             files = os.listdir("static")
-            if(len(files) != 0):
-                continue
             for file in files:
+                print("DETECTED FILE")
                 for i in range(LoadBalancer.CURRENT_SERVERS):
-                    if (test_this_server(LoadBalancer.systems[i])):
-                        try:
-                            res = send_image(file, LoadBalancer.systems[i])
-                            dataName= extract_data(file)
-                            print(res)
-                            modify_csv(ip=dataName, result=res, time2=get_time())
-                            os.remove("static/" + file)
-                            break
-                        except:
-                            print("error")
-                            continue
-
+                    if (test_this_server(LoadBalancer.systems[i])==200):
+                        print("sending to " + LoadBalancer.systems[i].name)
+                        res = send_image(file, LoadBalancer.systems[i])
+                        print("OUTPUT")
+                        dataName= extract_data(file)
+                        print(res)
+                        print("CHANGING CSV")
+                        change_from_processing_to_result(dataName, res)
+                        print("REMOVING FILE")
+                        os.remove("static/" + file)
+                        break
 
 if __name__ == '__main__':
 
-    while(True):
-        my_thread = threading.Thread(target=HelperFunctions.run)
-        my_thread.start()
-        app.run(host="0.0.0.0", port=metadata.DEFAULT_PORT+34, debug=False)
+    for i in range(LoadBalancer.CURRENT_SERVERS):
+        print(test_this_server(LoadBalancer.systems[i]))
+    my_thread = threading.Thread(target=HelperFunctions.run)
+    my_thread.start()
+    app.run(host="0.0.0.0", port=metadata.DEFAULT_PORT+34, debug=True)
