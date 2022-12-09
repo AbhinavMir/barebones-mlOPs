@@ -234,7 +234,7 @@ class HelperFunctions:
             for file in files:
                 print("DETECTED FILE")
                 for i in range(LoadBalancer.CURRENT_SERVERS):
-                    if (test_this_server(LoadBalancer.systems[i])==200):
+                    if (test_this_server(LoadBalancer.systems[i])=='200'):
                         print("sending to " + LoadBalancer.systems[i].name)
                         res = send_image(file, LoadBalancer.systems[i])
                         print("OUTPUT")
