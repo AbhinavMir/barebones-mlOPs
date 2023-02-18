@@ -1,3 +1,5 @@
+## Miniproject for grad school
+
 If you're storing your private key in ~/.ssh, it makes sense to `chmod 400 ~/.ssh/id_geni_ssh_rsa` to prevent others from reading it. This also prevents ssh from complaining about the key being world-readable.
 
 To connect to server-0 machine:
